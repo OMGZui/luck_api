@@ -56,7 +56,6 @@ if (!function_exists('startsWith')) {
         return false;
     }
 }
-
 if (!function_exists('endsWith')) {
     function endsWith($haystack, $needles)
     {
