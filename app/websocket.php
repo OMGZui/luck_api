@@ -5,6 +5,7 @@
  * Date: 2018/1/3
  * Time: 16:29
  */
+require __DIR__.'/../index.php';
 
 error_reporting(E_ALL);
 set_time_limit(0);
@@ -20,13 +21,16 @@ class WebSocket
     private $master;
     private $log_path;
     private $redis;
+    private $key = 'tel';
 
-    public function __construct($host, $port, $log_path = '/var/www/m/storage/logs/')
+    public function __construct($host, $port, $log_path = __DIR__.'/../storage/logs/')
     {
         try {
             //连接redis
-            $this->redis = new Redis();
-            $this->redis->connect('172.20.0.1', 6379);
+//            $this->redis = new Redis();
+//            $this->redis->connect('172.20.0.1', 6379);
+
+            $this->redis = \App\Conn::getInstance();
 
             $this->log_path = $log_path;
             $this->master = socket_create(AF_INET, SOCK_STREAM, SOL_TCP);
@@ -85,9 +89,9 @@ class WebSocket
         }
         //因为这次客户端基本不会向服务端发送请求，&$read &write sokcets数组基本不会发生变化，所以推送逻辑得分开
         foreach ($this->danmuSockets as $socket) {
-            $this->debug(['scan danmu']);
+            $this->debug(['barrage']);
             $msg = [
-                'type' => 'danmu',
+                'type' => 'barrage',
                 'content' => $this->busterBeam($socket),
             ];
             if (!empty($msg['content'])) {
@@ -329,7 +333,9 @@ class WebSocket
             $area = $this->danmuSockets[(int)$socket]['area'];
         }
 
-        $danmu = $this->redis->rpop(md5($area . 'danmu'));
+//        $danmu = $this->redis->rpop(md5($area . 'danmu'));
+        $danmu = $this->redis->rpop($this->key);
+        $this->debug(['danmu', $danmu]);
         return $danmu;
     }
 
